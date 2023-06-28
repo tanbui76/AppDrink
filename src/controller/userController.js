@@ -52,9 +52,10 @@ let updateUser = async (req, res) => {
     }
 };
 
+
 module.exports = {
     getAllUsers: getAllUsers,
     createUser: createUser,
-    updateUser: updateUser
+    updateUser: updateUser,
 }
 
