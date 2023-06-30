@@ -18,15 +18,17 @@ let getAllUsers = async (req, res) => {
 
 
 let createUser = async (req, res) => {
+    try {
     let date = new Date();
     let created_at = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate();
-    let password = req.query.pwd;
+    let password = req.body.pwd;
+
     const salt = await bcrypt.genSalt(10);
     let encryptPassword = await bcrypt.hash(password, salt);
-    try {
+    
         await (await connection).execute(
             "INSERT INTO users (username, pwd, full_name, telephone, created_at, modified_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [req.query.username, encryptPassword, req.query.full_name, req.query.telephone, created_at, created_at, 3]
+            [req.body.username, encryptPassword, req.body.full_name, req.body.telephone, created_at, created_at, 3]
         );
         return res.status(200).json({
             message: "Create user",
@@ -113,5 +115,6 @@ module.exports = {
     getAllUsers: getAllUsers,
     createUser: createUser,
     updateUser: updateUser,
+    findUser: findUser
 }
 
