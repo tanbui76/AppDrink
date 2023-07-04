@@ -65,14 +65,14 @@ let createUser = async (req, res) => {
 
             }
         } else {
-            let check = await (await connection).execute("SELECT * FROM users WHERE telephone = ?", [username]);
-            if (check[0].length > 0) {
+            let checkNumber = await (await connection).execute("SELECT * FROM users WHERE telephone = ?", [username]);
+            if (checkNumber[0].length > 0) {
                 return res.status(400).json({
                     message: "Telephone already exists",
                 });
             }
         }
-        (await connection).execute(
+        await (await connection).execute(
             "INSERT INTO users (username, pwd, full_name, telephone, created_at, modified_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [username, encryptPassword, req.query.full_name, req.query.telephone, created_at, created_at, 3]
         );
