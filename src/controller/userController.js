@@ -46,6 +46,7 @@ let createUser = async (req, res) => {
             if (await checkExist(username) === false) {
                 return res.status(400).json({
                     message: "Email already exists",
+                    code: "1"
                 });
             } else {
                 await axios.get(`https://api.hunter.io/v2/email-verifier?email=${username}&api_key=${API_KEY}`).then(async (response) => {
@@ -54,14 +55,14 @@ let createUser = async (req, res) => {
                     if (result.result === 'undeliverable' || result.result === 'risky') {
                         return res.status(400).json({
                             message: "Email is not valid",
-                            code: "1"
+                            code: "2"
                         });
                     }
                 }).catch(async (error) => {
                     console.log(error);
                     return res.status(500).json({
                         message: "Error not found this email",
-                        code: "2"
+                        code: "3"
                     });
                 });
 
@@ -71,23 +72,23 @@ let createUser = async (req, res) => {
             if (checkNumber[0].length > 0) {
                 return res.status(400).json({
                     message: "Telephone already exists",
-                    code: "3"
+                    code: "4"
                 });
             }
         }
         await (await connection).execute(
             "INSERT INTO users (username, pwd, full_name, telephone, created_at, modified_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [username, encryptPassword, req.query.full_name, req.query.telephone, created_at, created_at, 3]
+            [username, encryptPassword, req.body.full_name, req.body.telephone, created_at, created_at, 3]
         );
         return res.status(200).json({
             message: "Create user",
-            code: "4"
+            code: "5"
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             message: "Error",
-            code: "5"
+            code: "6"
         });
     }
 
