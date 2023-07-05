@@ -36,20 +36,23 @@ let createUser = async (req, res) => {
         let date = new Date();
         let created_at = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate();
         let password = req.body.pwd || req.query.pwd;
-
+        let email;
+        let telephone;
         const salt = await bcrypt.genSalt(10);
         let encryptPassword = await bcrypt.hash(password, salt);
 
-        let username = await req.body.username || req.query.username;
+        let email_or_phone = await req.body.email_or_phone || req.query.email_or_phone;
 
-        if (username.includes("@")) {
-            if (await checkExist(username) === false) {
+        if (email_or_phone.includes("@")) {
+            email = email_or_phone;
+            telephone = "";
+            if (await checkExist(email_or_phone) === false) {
                 return res.status(400).json({
                     message: "Email already exists",
                     code: "1"
                 });
             } else {
-                await axios.get(`https://api.hunter.io/v2/email-verifier?email=${username}&api_key=${API_KEY}`).then(async (response) => {
+                await axios.get(`https://api.hunter.io/v2/email-verifier?email=${email_or_phone}&api_key=${API_KEY}`).then(async (response) => {
                     const result = response.data.data;
 
                     if (result.result === 'undeliverable' || result.result === 'risky') {
@@ -68,7 +71,9 @@ let createUser = async (req, res) => {
 
             }
         } else {
-            let checkNumber = await (await connection).execute("SELECT * FROM users WHERE telephone = ?", [username]);
+            email = "";
+            telephone = email_or_phone;
+            let checkNumber = await (await connection).execute("SELECT * FROM users WHERE telephone = ?", [email_or_phone]);
             if (checkNumber[0].length > 0) {
                 return res.status(400).json({
                     message: "Telephone already exists",
@@ -77,8 +82,8 @@ let createUser = async (req, res) => {
             }
         }
         await (await connection).execute(
-            "INSERT INTO users (username, pwd, full_name, telephone, created_at, modified_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [username, encryptPassword, req.body.full_name, req.body.telephone, created_at, created_at, 3]
+            "INSERT INTO users (email, pwd, full_name, telephone, created_at, modified_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [email, encryptPassword, req.body.full_name, telephone, created_at, created_at, 3]
         );
         return res.status(200).json({
             message: "Create user",
@@ -96,7 +101,7 @@ let createUser = async (req, res) => {
 };
 
 
-let findUser = async (req, res) => { 
+let findUser = async (req, res) => {
     let username = req.query.username;
     let password = req.query.pwd;
     try {
