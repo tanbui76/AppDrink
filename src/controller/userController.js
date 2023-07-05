@@ -22,7 +22,7 @@ let getAllUsers = async (req, res) => {
 
 async function checkExist(username) {
     console.log(username);
-    let check = await (await connection).execute("SELECT * FROM users WHERE username = ?", [username]);
+    let check = await (await connection).execute("SELECT * FROM users WHERE email = ?", [username]);
     if (check[0].length > 0) {
         return false;
     } else {
@@ -93,6 +93,7 @@ let createUser = async (req, res) => {
         console.log(error);
         return res.status(500).json({
             message: "Error",
+            parameter: "email_or_phone,pwd,full_name",
             code: "6"
         });
     }
@@ -106,7 +107,7 @@ let findUser = async (req, res) => {
     let password = req.query.pwd;
     try {
         const [rows, fields] = await (await connection).execute(
-            "SELECT * FROM users WHERE username = ? OR telephone = ?",
+            "SELECT * FROM users WHERE email = ? OR telephone = ?",
             [username, username]
         );
         if (rows.length === 0) {
