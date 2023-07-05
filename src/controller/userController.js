@@ -95,7 +95,7 @@ let createUser = async (req, res) => {
 };
 
 
-let findUser = async (req, res) => {
+let findUser = async (req, res) => { 
     let username = req.query.username;
     let password = req.query.pwd;
     try {
