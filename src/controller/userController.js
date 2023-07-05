@@ -54,12 +54,14 @@ let createUser = async (req, res) => {
                     if (result.result === 'undeliverable' || result.result === 'risky') {
                         return res.status(400).json({
                             message: "Email is not valid",
+                            code: "1"
                         });
                     }
                 }).catch(async (error) => {
                     console.log(error);
                     return res.status(500).json({
                         message: "Error not found this email",
+                        code: "2"
                     });
                 });
 
@@ -69,6 +71,7 @@ let createUser = async (req, res) => {
             if (checkNumber[0].length > 0) {
                 return res.status(400).json({
                     message: "Telephone already exists",
+                    code: "3"
                 });
             }
         }
@@ -78,11 +81,13 @@ let createUser = async (req, res) => {
         );
         return res.status(200).json({
             message: "Create user",
+            code: "4"
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             message: "Error",
+            code: "5"
         });
     }
 
