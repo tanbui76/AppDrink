@@ -2,6 +2,7 @@ import express from 'express';
 import connection from '../config/connectDB';
 import authenicationController from '../controller/authenicationController';
 import userController from '../controller/userController';
+import productController from '../controller/productController';
 
 let router = express.Router();
 
@@ -11,7 +12,8 @@ const initAPIRoutes = (app) => {
     router.put('/update-user', userController.updateUser);
     router.post('/send-sms', authenicationController.sendSMS);
     router.post('/email-otp-sender', authenicationController.emailOTPSender);
-    router.post('/get-user',userController.findUser);
+    router.post('/get-user', userController.findUser);
+    router.get('/get-product', productController.getAllProduct);
 
     app.use('/api', router);
 }

@@ -2,6 +2,8 @@ import express from "express";
 import connection from "../config/connectDB";
 const { Vonage } = require('@vonage/server-sdk')
 import { Auth, LoginCredentials } from "two-step-auth";
+import configFB from "../config/configFB";
+import passport from "passport";
 const vonage = new Vonage({
     apiKey: "8ac9f4b0",
     apiSecret: "PLL4VwzCTMaJHp4W"
@@ -39,6 +41,14 @@ let sendSMS = async (req, res) => {
         .catch(err => { console.log('There was an error sending the messages.'); console.error(err); });
     return res.status(200).json({
         message: "Send SMS",
+    });
+}
+
+let facebookAuthenication = async (req, res) => {
+    passport.authenticate('facebook', { scope: ['email'] });
+    return res.status(200).json({
+        message: "Facebook Authenication",
+        data: configFB,
     });
 }
 
