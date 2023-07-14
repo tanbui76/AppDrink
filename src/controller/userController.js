@@ -2,12 +2,15 @@ import express from "express";
 import connection from "../config/connectDB";
 import bcrypt from "bcrypt";
 import axios from "axios";
+import getConnection from "../config/connectDB";
 
 const API_KEY = '281ea9d6a46f5338283836891404738de3a20097';
 
 let getAllUsers = async (req, res) => {
+    let connection;
     try {
-        const [rows, fields] = await (await connection).execute("SELECT * FROM users");
+        connection = await getConnection();
+        const [rows, fields] = await connection.execute("SELECT * FROM users");
         return res.status(200).json({
             message: "Get all users",
             data: rows
@@ -17,21 +20,31 @@ let getAllUsers = async (req, res) => {
             message: "Error",
         });
 
+    } finally {
+        connection.end();
     }
 };
 
 async function checkExist(username) {
-    console.log(username);
-    let check = await (await connection).execute("SELECT * FROM users WHERE email = ?", [username]);
-    if (check[0].length > 0) {
-        return false;
-    } else {
-        return true;
+    let connection;
+    try {
+        connection = await getConnection();
+        console.log(username);
+        let check = await connection.execute("SELECT * FROM users WHERE email = ?", [username]);
+        if (check[0].length > 0) {
+            return false;
+        } else {
+            return true;
+        }
+    } catch (error) {
+        
     }
+
 }
 
 
 let createUser = async (req, res) => {
+    let connection;
     try {
         let date = new Date();
         let created_at = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate();
@@ -42,6 +55,7 @@ let createUser = async (req, res) => {
         let encryptPassword = await bcrypt.hash(password, salt);
 
         let email_or_phone = await req.body.email_or_phone || req.query.email_or_phone;
+        connection = await getConnection();
 
         if (email_or_phone.includes("@")) {
             email = email_or_phone;
@@ -73,7 +87,7 @@ let createUser = async (req, res) => {
         } else {
             email = "";
             telephone = email_or_phone;
-            let checkNumber = await (await connection).execute("SELECT * FROM users WHERE telephone = ?", [email_or_phone]);
+            let checkNumber = await connection.execute("SELECT * FROM users WHERE telephone = ?", [email_or_phone]);
             if (checkNumber[0].length > 0) {
                 return res.status(400).json({
                     message: "Telephone already exists",
@@ -81,7 +95,7 @@ let createUser = async (req, res) => {
                 });
             }
         }
-        await (await connection).execute(
+        await connection.execute(
             "INSERT INTO users (email, pwd, full_name, telephone, created_at, modified_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [email, encryptPassword, req.body.full_name, telephone, created_at, created_at, 3]
         );
@@ -96,6 +110,8 @@ let createUser = async (req, res) => {
             parameter: "email_or_phone,pwd,full_name",
             code: "6"
         });
+    } finally{
+        connection.end();
     }
 
 
@@ -105,8 +121,10 @@ let createUser = async (req, res) => {
 let findUser = async (req, res) => {
     let username = req.query.email_or_phone || req.body.email_or_phone;
     let password = req.query.pwd || req.body.pwd;
+    let connection;
     try {
-        const [rows, fields] = await (await connection).execute(
+        connection = await getConnection();
+        const [rows, fields] = await connection.execute(
             "SELECT * FROM users WHERE email = ? OR telephone = ?",
             [username, username]
         );
@@ -132,14 +150,18 @@ let findUser = async (req, res) => {
             parameter: "email_or_pass,pwd",
             error: error.message
         });
+    } finally {
+        connection.end();
     }
 };
 
 let updateUser = async (req, res) => {
     let date = new Date();
     let modified_at = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate();
+    let connection;
     try {
-        await (await connection).execute(
+        connection = await getConnection();
+        await connection.execute(
             "UPDATE `db_appdrink`.`users` SET `username` = ?, `pwd` = ?, `full_name` = ?, `telephone` = ?, `modified_at` = ? WHERE (`id` = ?)",
             [req.query.username, req.query.pwd, req.query.full_name, req.query.telephone, modified_at, req.query.id]
         );
@@ -147,12 +169,16 @@ let updateUser = async (req, res) => {
         return res.status(500).json({
             message: "Error",
         });
+    } finally{
+        connection.end();
     }
 };
 
 let deleteUser = async (req, res) => {
+    let connection;
     try {
-        await (await connection).execute(
+        connection = await getConnection();
+        await connection.execute(
             "DELETE FROM `db_appdrink`.`users` WHERE (`id` = ?)",
             [req.query.id]
         );
@@ -164,6 +190,8 @@ let deleteUser = async (req, res) => {
         return res.status(500).json({
             message: "Error",
         });
+    } finally{
+        connection.end();
     }
 }
 
