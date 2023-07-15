@@ -24,9 +24,10 @@ passport.use(
         callbackURL: googlekeys.callbackURL
     }, async (accessToken, refreshToken, profile, done) => {
         try {
+            let connection = await getConnection();
             if (profile.id) {
                 console.log(profile);
-                const [rows] = await (await getConnection()).execute("SELECT * FROM user WHERE googleId = ?", [profile.id]);
+                const [rows] = await connection.execute("SELECT * FROM user WHERE googleId = ?", [profile.id]);
                 if (rows.length > 0) {
                     return res.status(200).json({
                         message: "Login with google success",
@@ -46,6 +47,13 @@ passport.use(
         }
         catch (error) {
             console.log(error);
+            return res.status(500).json({
+                message: "Error",
+                error: error.message
+            });
+
+        } finally {
+            connection.end();
         }
     })
 );
